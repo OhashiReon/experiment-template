@@ -37,9 +37,9 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash - && \
     apt install -y nodejs && \
     npm install -g @google/gemini-cli \
-    @github/copilot-cli \
+    @github/copilot \
     @openai/codex && \
-    curl -fsSL https://claude.ai/install.sh | sh && \
+    curl -fsSL https://claude.ai/install.sh | bash && \
     rm -rf /var/lib/apt/lists/*
 
 # Setup LazyVim

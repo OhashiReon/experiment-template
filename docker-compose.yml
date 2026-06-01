@@ -1,0 +1,51 @@
+services:
+  sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${IMAGE_NAME:-ohashi-sandbox}
+    container_name: ${CONTAINER_NAME:-ohashi-sandbox-container}
+    volumes:
+      # Project directory (shared between host and container)
+      - ./project:/workspace
+      
+      # NAS mounts for persistent data and models
+      - ${NAS_PATH}:/root/nas
+      
+      # Specific cache directories on NAS
+      - ${NAS_PATH}/cache/uv:/root/.cache/uv
+      - ${NAS_PATH}/cache/huggingface:/root/.cache/huggingface
+      - ${NAS_PATH}/cache/npm:/root/.npm
+      - ${NAS_PATH}/cache/dvc:/root/.cache/dvc
+      - ${NAS_PATH}/cache/gh:/root/.config/gh
+      
+      # Pre-trained models directory on NAS
+      - ${NAS_PATH}/models:/root/models
+      
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    shm_size: 32gb
+    pid: host
+    stdin_open: true
+    tty: true
+    environment:
+      - TERM=xterm-256color
+      - DVC_CACHE_DIR=/root/nas/cache/dvc
+
+  # Visualization Service (Web File Browser)
+  viz:
+    image: filebrowser/filebrowser:latest
+    container_name: ohashi-viz
+    ports:
+      - "${VIZ_PORT:-8080}:80"
+    volumes:
+      - ${NAS_PATH}:/srv/nas
+      - ./project:/srv/project
+    environment:
+      - FB_BASEURL=/
+    restart: unless-stopped

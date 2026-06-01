@@ -52,8 +52,8 @@ RUN git clone https://github.com/LazyVim/starter /root/.config/nvim && \
 ENV TERM=xterm-256color
 ENV DVC_CACHE_DIR=/root/nas/cache/dvc
 RUN echo "alias ll='ls -l'" >> /root/.bashrc && \
-    echo "alias cat='batcat --paging=never'" >> /root/.bashrc && \
-    echo "alias bat='batcat'" >> /root/.bashrc
+    echo "alias cat='batcat --style=plain --paging=never'" >> /root/.bashrc && \
+    echo "alias bat='batcat --style=plain'" >> /root/.bashrc
 
 WORKDIR /workspace
 

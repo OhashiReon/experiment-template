@@ -86,6 +86,6 @@ ssh -L 8080:localhost:8080 user@your-server-ip
 
 ## 便利な設定
 
-- **エイリアス**: `ll` (`ls -l`), `cat` (`batcat`), `bat` (`batcat`) が登録済み。
+- **エイリアス**: `ll` (`ls -l`), `cat` (`batcat --style=plain`), `bat` (`batcat --style=plain`) が登録済み。
 - **TERM**: `xterm-256color` が自動設定されているため、最初からカラー表示が有効です。
 - **DVC**: キャッシュ先が自動的にNAS上のディレクトリに設定されています。

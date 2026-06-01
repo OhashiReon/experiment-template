@@ -1,7 +1,8 @@
 FROM nvidia/cuda:12.4.1-base-ubuntu22.04
 
-# Set non-interactive mode for apt
+# Set non-interactive mode for apt and default shell
 ENV DEBIAN_FRONTEND=noninteractive
+ENV SHELL=/bin/bash
 
 # Install system dependencies
 RUN apt update && \
@@ -17,6 +18,7 @@ RUN apt update && \
     fd-find \
     tmux \
     gh \
+    bat \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Zellij (Modern Terminal Workspace)

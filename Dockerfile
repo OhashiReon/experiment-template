@@ -24,10 +24,10 @@ RUN curl -L https://github.com/zellij-org/zellij/releases/latest/download/zellij
     mv zellij /usr/local/bin/zellij
 
 # Install Neovim (Latest Stable)
-RUN curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz && \
+RUN curl -LO https://github.com/neovim/neovim/releases/download/stable/nvim-linux-x86_64.tar.gz && \
     rm -rf /opt/nvim && \
-    tar -C /opt -xzf nvim-linux64.tar.gz && \
-    ln -s /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim
+    tar -C /opt -xzf nvim-linux-x86_64.tar.gz && \
+    ln -s /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
 
 # Install uv
 ENV UV_INSTALL_DIR="/usr/local/bin"

@@ -33,8 +33,8 @@ RUN curl -LO https://github.com/neovim/neovim/releases/download/stable/nvim-linu
 ENV UV_INSTALL_DIR="/usr/local/bin"
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install Node.js and AI CLI tools
-RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash - && \
+# Install Node.js 22 and AI CLI tools
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt install -y nodejs && \
     npm install -g @google/gemini-cli \
     @github/copilot \

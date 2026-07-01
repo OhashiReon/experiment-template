@@ -70,12 +70,48 @@ docker compose exec sandbox zellij
 
 SSHが切れても、`zellij attach` で作業状態を復元できます。
 
+## 安定 SSH 接続
+
+このテンプレートは実験ホストを Tailscale に常時参加させる `tailscale` サービスを含みます。
+踏み台サーバーや時間帯で切り替わる SSH 経路に依存せず、Tailscale 経由で SSH します。
+
+`.env` でホストごとの値を設定します。
+
+```bash
+TS_HOSTNAME=your-hostname
+TAILSCALE_CONTAINER_NAME=your-tailscale-container
+TAILSCALE_STATE_VOLUME=your-existing-tailscale-state-volume
+```
+
+手元 PC から直接つながらない環境では、Tailscale に参加済みの別サーバーを踏み台にします。
+実 IP や踏み台名は public repo に入れず、ローカルの `~/.ssh/config` にだけ置きます。
+
+```sshconfig
+Host experiment-host-tail
+  HostName <tailscale-ip>
+  User <user>
+  ProxyJump <tailscale-reachable-jump-host>
+  StrictHostKeyChecking accept-new
+```
+
+接続:
+
+```bash
+ssh experiment-host-tail
+```
+
+`tailscale` サービスは認証済みの Docker volume を使います。
+初回だけ Tailscale の認証 URL を開いて、踏み台サーバーと同じ tailnet に追加してください。
+
+## 実験結果の確認
+
 `viz` サービス（File Browser）を使うことで、ブラウザからNASやプロジェクト内のファイルを確認できます。
+File Browser は実験ホスト上の `VIZ_PORT` で起動します。外部に広く公開せず、SSH のポートフォワードで必要な時だけ開きます。
 
 ### 1. ポートフォワード付きでSSH接続
-ローカルPCからサーバーへ接続する際、ポート `8080`（または `.env` で設定した値）を転送します。
+ローカルPCから実験ホストへ接続する際、ポート `8080`（または `.env` で設定した値）を転送します。
 ```bash
-ssh -L 8080:localhost:8080 user@your-server-ip
+ssh -L 8080:localhost:8080 experiment-host-tail
 ```
 
 ### 2. ブラウザでアクセス

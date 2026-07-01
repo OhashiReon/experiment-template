@@ -59,7 +59,7 @@ services:
     image: filebrowser/filebrowser:latest
     container_name: ohashi-viz
     ports:
-      - "${VIZ_PORT:-8080}:80"
+      - "${VIZ_BIND:-127.0.0.1}:${VIZ_PORT:-8080}:80"
     volumes:
       - ${NAS_PATH}:/srv/nas
       - ./project:/srv/project

@@ -25,20 +25,28 @@ services:
     volumes:
       # Project directory (shared between host and container)
       - ./project:/workspace
-      
-      # NAS mounts for persistent data and models
+
+      # Persistent storage mounts (NAS_PATH can point at a NAS share or a local HDD)
       - ${NAS_PATH}:/root/nas
-      
-      # Specific cache directories on NAS
+
+      # Specific cache directories
       - ${NAS_PATH}/cache/uv:/root/.cache/uv
       - ${NAS_PATH}/cache/huggingface:/root/.cache/huggingface
       - ${NAS_PATH}/cache/npm:/root/.npm
       - ${NAS_PATH}/cache/dvc:/root/.cache/dvc
       - ${NAS_PATH}/cache/gh:/root/.config/gh
-      
-      # Pre-trained models directory on NAS
+
+      # Pre-trained models directory
       - ${NAS_PATH}/models:/root/models
-      
+
+      # Project-local uv cache/venv, relocated off the host root disk
+      - ${NAS_PATH}/uv-cache:/workspace/.uv-cache
+      - ${NAS_PATH}/venv:/workspace/.venv
+
+      # uv-managed Python runtimes (never persisted before - was lost on every
+      # container recreate since .venv/bin/python symlinks into this dir)
+      - ${NAS_PATH}/uv-managed:/root/.local/share/uv
+
     deploy:
       resources:
         reservations:

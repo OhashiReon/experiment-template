@@ -35,6 +35,7 @@ services:
       - ${NAS_PATH}/cache/npm:/root/.npm
       - ${NAS_PATH}/cache/dvc:/root/.cache/dvc
       - ${NAS_PATH}/cache/gh:/root/.config/gh
+      - ${NAS_PATH}/cache/ms-playwright:/root/.cache/ms-playwright
 
       # Pre-trained models directory
       - ${NAS_PATH}/models:/root/models

@@ -1,129 +1,100 @@
 # AI Research Sandbox Template
 
-GPU対応の学習環境と、SSH越しでも快適な開発・可視化を実現するためのDocker Composeテンプレートです。
+<p align="center">
+  <b>AI研究でよく使うツールを集めた開発環境の Docker 開発テンプレート</b>
+</p>
 
-## 特徴
+<p align="center">
+  <a href="https://developer.nvidia.com/cuda-toolkit"><img src="https://img.shields.io/badge/NVIDIA-CUDA_12.4.1-76B900?style=for-the-badge&logo=nvidia&logoColor=white" alt="NVIDIA CUDA" /></a>
+  <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/badge/Python-uv_fast-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="uv" /></a>
+  <a href="https://github.com/LazyVim/LazyVim"><img src="https://img.shields.io/badge/Editor-Neovim_/_LazyVim-57A143?style=for-the-badge&logo=neovim&logoColor=white" alt="LazyVim" /></a>
+  <a href="https://zellij.dev/"><img src="https://img.shields.io/badge/Multiplexer-Zellij-4B5563?style=for-the-badge&logo=gnu-bash&logoColor=white" alt="Zellij" /></a>
+  <a href="https://tailscale.com/"><img src="https://img.shields.io/badge/Network-Tailscale-24292F?style=for-the-badge&logo=tailscale&logoColor=white" alt="Tailscale" /></a>
+  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-Compose_v2-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" /></a>
+</p>
 
-- **GPU Support**: `nvidia/cuda:12.4.1` ベース。
-- **Modern Shell**: `Zsh` + `Oh My Zsh` による強力な補完とプラグイン機能。
-- **AI CLI Tools**: `gemini-cli`, `github/copilot`, `openai/codex`, `Claude Code` インストール済み。
-- **Developer Tools**: `git`, `git-lfs`, `gh` (GitHub CLI) インストール済み。
-- **Modern Editor**: `Neovim` + `LazyVim` によるIDEライクな開発環境。
-- **Remote Visualization**: `File Browser` により、SSH越しでもブラウザから画像や実験結果をプレビュー可能。
-- **Persistent Cache**: `uv`, `huggingface`, `npm`, `dvc` のキャッシュをNASに逃がす設定済み。
 
-## ディレクトリ構成
+## クイックスタート
 
-- `Dockerfile`: コンテナのビルド定義。
-- `docker-compose.yml`: サービス（開発環境 + 可視化ツール）の定義。
-- `.env`: NASのパスやポートの設定（`.env.example` から作成）。
-- `project/`: ソースコード。ホストのこのディレクトリがコンテナの `/workspace` に同期されます。
-- `models/`: NAS上の学習済みモデル保存用ディレクトリ。
+### 1. 環境変数の設定
+リポジトリをクローン後、`.env.example` をコピーして設定ファイルを作成します。
 
-## セットアップ
-
-### 1. 環境設定
-`.env.example` を `.env` にコピーし、自分の環境に合わせて `NAS_PATH` を書き換えてください。
 ```bash
 cp .env.example .env
 ```
 
-### 2. 起動
+### 2. コンテナの起動
+Docker Compose で開発環境と可視化サービスを一括起動します。
+
 ```bash
 docker compose up -d --build
 ```
 
-### 3. 開発開始 (LazyVim)
-コンテナに入って `nvim` を起動すると、初回にプラグインのインストールが始まります。
+### 3. 開発セッションの開始
+コンテナに入り、Neovim や Zellij を起動します。
+
 ```bash
+# Zellij でマルチペイン開発環境を立ち上げる 
+docker compose exec sandbox zellij
+
+# または直接 Neovim を起動
 docker compose exec sandbox nvim
 ```
 
-## GitHub の連携 (一度だけでOK)
 
-GitHub CLI (`gh`) の設定はNASに保存されるため、一度ログインすればコンテナを再作成しても認証が維持されます。
+## ディレクトリ構成
 
-1. コンテナ内でログインを実行:
-   ```bash
-   gh auth login
-   ```
-2. 画面の指示に従って認証（HTTPSを選択すると、SSHキーの設定なしでpush/pullが可能になります）。
-
-複数のターミナル（Neovim用 + エージェント用など）を効率よく管理するため、**Zellij** を推奨しています。
-
-### 1. Zellij の起動
-コンテナに入った後、`zellij` と打つだけでリッチなレイアウトが使えます。
-```bash
-docker compose exec sandbox zellij
+```text
+.
+├── Dockerfile              # NVIDIA CUDA 12.4 + LazyVim + Zellij + AI Tools の定義
+├── docker-compose.yml      # sandbox, File Browser, tailscale のサービス定義
+├── .env.example            # パスやポートの設定テンプレート
+├── README.md               # プロジェクトドキュメント
+├── project/                # [ホスト <-> コンテナ /workspace] 同期ディレクトリ
+└── (NAS_PATH)/             # NASや外部ストレージ上の永続化ディレクトリ
+    ├── cache/              # uv, huggingface, npm, dvc, gh のキャッシュ
+    ├── models/             # 大型モデル保存領域
+    └── venv/               # 永続化された Python 仮想環境
 ```
 
-### 2. 基本操作
-- **ペイン分割**: `Alt` + `n` (新しいペイン)
-- **ペイン移動**: `Alt` + `矢印キー`
-- **タブ作成**: `Alt` + `t`
-- **画面の全域表示**: `Alt` + `f` (Neovimを使う時に便利)
+## アーキテクチャ
 
-### 3. 並列開発のイメージ
-- **Pane 1**: `nvim` でコード編集
-- **Pane 2**: `gemini-cli` や `claude` でのリサーチ・コード生成
-- **Pane 3**: 実験の実行やログの監視
+```mermaid
+graph TD
+    classDef host fill:#2d3748,stroke:#cbd5e0,color:#fff;
+    classDef container fill:#1a202c,stroke:#4a5568,color:#fff;
+    classDef service fill:#2b6cb0,stroke:#63b3ed,color:#fff;
+    classDef user fill:#2f855a,stroke:#9ae6b4,color:#fff;
 
-SSHが切れても、`zellij attach` で作業状態を復元できます。
+    User["💻 Local PC / Developer"]:::user
 
-## 安定 SSH 接続
+    subgraph Host ["🖥️ Remote Experiment Host & NAS"]
+        subgraph Storage [" "]
+            Project["/project (Source Code)"]:::host
+            NAS["/NAS (Models, Caches, GH Auth)"]:::host
+        end
 
-このテンプレートは実験ホストを Tailscale に常時参加させる `tailscale` サービスを含みます。
-踏み台サーバーや時間帯で切り替わる SSH 経路に依存せず、Tailscale 経由で SSH します。
+        subgraph Docker ["🐳 Docker Compose Stack"]
+            subgraph Sandbox ["sandbox Container"]
+                NV["🟢 NVIDIA CUDA 12.4.1"]:::service
+            end
 
-`.env` でホストごとの値を設定します。
+            subgraph Viz ["File Browser Container"]
+                FB["🌐 File Browser Web UI (Port 8080)"]:::service
+            end
 
-```bash
-TS_HOSTNAME=your-hostname
-TAILSCALE_CONTAINER_NAME=your-tailscale-container
-TAILSCALE_STATE_VOLUME=your-existing-tailscale-state-volume
+            subgraph TS ["tailscale Container"]
+                Mesh["🔒 Tailscale Mesh Node"]:::service
+            end
+        end
+    end
+
+    User -->|SSH| Mesh
+    Mesh -->|Attach Shell| Sandbox
+    User -->|Port Forward| FB
+    
+    Sandbox <--> Project
+    Sandbox <--> NAS
+    Viz -.->Project
+    Viz -.->NAS
 ```
-
-手元 PC から直接つながらない環境では、Tailscale に参加済みの別サーバーを踏み台にします。
-実 IP や踏み台名は public repo に入れず、ローカルの `~/.ssh/config` にだけ置きます。
-
-```sshconfig
-Host experiment-host-tail
-  HostName <tailscale-ip>
-  User <user>
-  ProxyJump <tailscale-reachable-jump-host>
-  StrictHostKeyChecking accept-new
-```
-
-接続:
-
-```bash
-ssh experiment-host-tail
-```
-
-`tailscale` サービスは認証済みの Docker volume を使います。
-初回だけ Tailscale の認証 URL を開いて、踏み台サーバーと同じ tailnet に追加してください。
-
-## 実験結果の確認
-
-`viz` サービス（File Browser）を使うことで、ブラウザからNASやプロジェクト内のファイルを確認できます。
-File Browser は実験ホスト上の `VIZ_PORT` で起動します。外部に広く公開せず、SSH のポートフォワードで必要な時だけ開きます。
-デフォルトでは `VIZ_BIND=127.0.0.1` のため、実験ホスト自身からしか直接接続できません。
-
-### 1. ポートフォワード付きでSSH接続
-ローカルPCから実験ホストへ接続する際、ポート `8080`（または `.env` で設定した値）を転送します。
-```bash
-ssh -L 8080:localhost:8080 experiment-host-tail
-```
-
-### 2. ブラウザでアクセス
-ローカルPCのブラウザで以下を開きます。
-- **URL**: `http://localhost:8080`
-- **初期ユーザー/パス名**: `admin` / `admin` (初回ログイン後に変更を推奨)
-
-ここから `/srv/nas` や `/srv/project` 内の画像、ログ、CSVなどを直接プレビューできます。
-
-## 便利な設定
-
-- **エイリアス**: `ll` (`ls -l`), `cat` (`batcat --style=plain`), `bat` (`batcat --style=plain`) が登録済み。
-- **TERM**: `xterm-256color` が自動設定されているため、最初からカラー表示が有効です。
-- **DVC**: キャッシュ先が自動的にNAS上のディレクトリに設定されています。

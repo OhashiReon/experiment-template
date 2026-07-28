@@ -58,6 +58,15 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
 RUN git clone https://github.com/LazyVim/starter /root/.config/nvim && \
     rm -rf /root/.config/nvim/.git
 
+# System deps for headless Chromium (Playwright). The Playwright *package*
+# and browser binary itself are installed later into the project's uv venv
+# (persisted on NAS_PATH, see docker-compose.yml) - only the apt-level shared
+# libraries need to live in the image. Using an ephemeral `uv run --with`
+# environment to invoke `playwright install-deps` avoids hardcoding the long,
+# version-specific apt package list by hand.
+RUN uv run --with playwright==1.61.0 playwright install-deps chromium && \
+    rm -rf /var/lib/apt/lists/* /root/.cache/uv /root/.local/share/uv
+
 # Set Environment Variables and Aliases
 ENV TERM=xterm-256color
 ENV DVC_CACHE_DIR=/root/nas/cache/dvc

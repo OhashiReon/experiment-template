@@ -23,30 +23,30 @@ services:
     image: ${IMAGE_NAME:-ohashi-sandbox}
     container_name: ${CONTAINER_NAME:-ohashi-sandbox-container}
     volumes:
-      # Project directory (shared between host and container)
-      - ./project:/workspace
+      # Workspace directory (shared between host and container, same name on both sides)
+      - ./workspace:/workspace
 
-      # Persistent storage mounts (NAS_PATH can point at a NAS share or a local HDD)
-      - ${NAS_PATH}:/root/nas
+      # Persistent storage, mounted at /hdd so it is visible at the container root
+      - ${HDD_PATH}:/hdd
 
       # Specific cache directories
-      - ${NAS_PATH}/cache/uv:/root/.cache/uv
-      - ${NAS_PATH}/cache/huggingface:/root/.cache/huggingface
-      - ${NAS_PATH}/cache/npm:/root/.npm
-      - ${NAS_PATH}/cache/dvc:/root/.cache/dvc
-      - ${NAS_PATH}/cache/gh:/root/.config/gh
-      - ${NAS_PATH}/cache/ms-playwright:/root/.cache/ms-playwright
+      - ${HDD_PATH}/cache/uv:/root/.cache/uv
+      - ${HDD_PATH}/cache/huggingface:/root/.cache/huggingface
+      - ${HDD_PATH}/cache/npm:/root/.npm
+      - ${HDD_PATH}/cache/dvc:/root/.cache/dvc
+      - ${HDD_PATH}/cache/gh:/root/.config/gh
+      - ${HDD_PATH}/cache/ms-playwright:/root/.cache/ms-playwright
 
       # Pre-trained models directory
-      - ${NAS_PATH}/models:/root/models
+      - ${HDD_PATH}/models:/root/models
 
       # Project-local uv cache/venv, relocated off the host root disk
-      - ${NAS_PATH}/uv-cache:/workspace/.uv-cache
-      - ${NAS_PATH}/venv:/workspace/.venv
+      - ${HDD_PATH}/uv-cache:/workspace/.uv-cache
+      - ${HDD_PATH}/venv:/workspace/.venv
 
       # uv-managed Python runtimes (never persisted before - was lost on every
       # container recreate since .venv/bin/python symlinks into this dir)
-      - ${NAS_PATH}/uv-managed:/root/.local/share/uv
+      - ${HDD_PATH}/uv-managed:/root/.local/share/uv
 
     deploy:
       resources:
@@ -61,17 +61,17 @@ services:
     tty: true
     environment:
       - TERM=xterm-256color
-      - DVC_CACHE_DIR=/root/nas/cache/dvc
+      - DVC_CACHE_DIR=/hdd/cache/dvc
 
-  # Visualization Service (Web File Browser)
-  viz:
+  # Web UI for browsing the workspace and the HDD from a browser
+  filebrowser:
     image: filebrowser/filebrowser:latest
-    container_name: ohashi-viz
+    container_name: ${FILEBROWSER_CONTAINER_NAME:-ohashi-filebrowser}
     ports:
-      - "${VIZ_BIND:-127.0.0.1}:${VIZ_PORT:-8080}:80"
+      - "${FILEBROWSER_BIND:-127.0.0.1}:${FILEBROWSER_PORT:-8080}:80"
     volumes:
-      - ${NAS_PATH}:/srv/nas
-      - ./project:/srv/project
+      - ${HDD_PATH}:/srv/hdd
+      - ./workspace:/srv/workspace
     environment:
       - FB_BASEURL=/
     restart: unless-stopped

@@ -4,6 +4,11 @@ FROM nvidia/cuda:12.4.1-base-ubuntu22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SHELL=/usr/bin/zsh
 
+# agnoster draws its prompt with multi-byte glyphs, which zsh cannot render
+# under the image's default ASCII locale.
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
 # Install system dependencies
 RUN apt update && \
     apt install -y \
@@ -48,11 +53,15 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 # Install Node.js 22 and AI CLI tools
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt install -y nodejs && \
-    npm install -g @google/gemini-cli \
-    @github/copilot \
+    npm install -g @github/copilot \
     @openai/codex && \
     curl -fsSL https://claude.ai/install.sh | bash && \
     rm -rf /var/lib/apt/lists/*
+
+# Install Antigravity CLI (agy), the successor to the retired Gemini CLI.
+# Ships as a standalone binary, so it is moved next to the other manual installs.
+RUN curl -fsSL https://antigravity.google/cli/install.sh | bash && \
+    mv /root/.local/bin/agy /usr/local/bin/agy
 
 # Setup LazyVim
 RUN git clone https://github.com/LazyVim/starter /root/.config/nvim && \
@@ -60,7 +69,7 @@ RUN git clone https://github.com/LazyVim/starter /root/.config/nvim && \
 
 # System deps for headless Chromium (Playwright). The Playwright *package*
 # and browser binary itself are installed later into the project's uv venv
-# (persisted on NAS_PATH, see docker-compose.yml) - only the apt-level shared
+# (persisted on HDD_PATH, see docker-compose.yml) - only the apt-level shared
 # libraries need to live in the image. Using an ephemeral `uv run --with`
 # environment to invoke `playwright install-deps` avoids hardcoding the long,
 # version-specific apt package list by hand.
@@ -69,8 +78,12 @@ RUN uv run --with playwright==1.61.0 playwright install-deps chromium && \
 
 # Set Environment Variables and Aliases
 ENV TERM=xterm-256color
-ENV DVC_CACHE_DIR=/root/nas/cache/dvc
-RUN echo "alias ll='ls -l'" >> /root/.zshrc && \
+ENV DVC_CACHE_DIR=/hdd/cache/dvc
+# "docker compose exec -t" injects the client's TERM into the exec environment,
+# which overrides the ENV above. Set it back from the shell rc, unless a
+# multiplexer has already picked a TERM of its own.
+RUN echo '[[ $TERM == *-256color || $TERM == tmux* || $TERM == screen* ]] || export TERM=xterm-256color' >> /root/.zshrc && \
+    echo "alias ll='ls -l'" >> /root/.zshrc && \
     echo "alias cat='batcat --style=plain --paging=never'" >> /root/.zshrc && \
     echo "alias bat='batcat --style=plain'" >> /root/.zshrc
 

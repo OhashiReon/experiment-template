@@ -47,11 +47,11 @@ docker compose exec sandbox nvim
 ```text
 .
 ├── Dockerfile              # NVIDIA CUDA 12.4 + LazyVim + Zellij + AI Tools の定義
-├── docker-compose.yml      # sandbox, File Browser, tailscale のサービス定義
+├── docker-compose.yml      # sandbox, filebrowser, tailscale のサービス定義
 ├── .env.example            # パスやポートの設定テンプレート
 ├── README.md               # プロジェクトドキュメント
-├── project/                # [ホスト <-> コンテナ /workspace] 同期ディレクトリ
-└── (NAS_PATH)/             # NASや外部ストレージ上の永続化ディレクトリ
+├── workspace/              # [ホスト <-> コンテナ /workspace] 同期ディレクトリ
+└── (HDD_PATH)/             # 外部ストレージ上の永続化ディレクトリ (コンテナ内 /hdd)
     ├── cache/              # uv, huggingface, npm, dvc, gh のキャッシュ
     ├── models/             # 大型モデル保存領域
     └── venv/               # 永続化された Python 仮想環境
@@ -68,10 +68,10 @@ graph TD
 
     User["💻 Local PC / Developer"]:::user
 
-    subgraph Host ["🖥️ Remote Experiment Host & NAS"]
+    subgraph Host ["🖥️ Remote Experiment Host & HDD"]
         subgraph Storage [" "]
-            Project["/project (Source Code)"]:::host
-            NAS["/NAS (Models, Caches, GH Auth)"]:::host
+            Workspace["/workspace (Source Code)"]:::host
+            HDD["/hdd (Models, Caches, GH Auth)"]:::host
         end
 
         subgraph Docker ["🐳 Docker Compose Stack"]
@@ -79,7 +79,7 @@ graph TD
                 NV["🟢 NVIDIA CUDA 12.4.1"]:::service
             end
 
-            subgraph Viz ["File Browser Container"]
+            subgraph FileBrowser ["filebrowser Container"]
                 FB["🌐 File Browser Web UI (Port 8080)"]:::service
             end
 
@@ -93,8 +93,8 @@ graph TD
     Mesh -->|Attach Shell| Sandbox
     User -->|Port Forward| FB
     
-    Sandbox <--> Project
-    Sandbox <--> NAS
-    Viz -.->Project
-    Viz -.->NAS
+    Sandbox <--> Workspace
+    Sandbox <--> HDD
+    FileBrowser -.->Workspace
+    FileBrowser -.->HDD
 ```

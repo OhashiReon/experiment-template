@@ -23,8 +23,10 @@ services:
     image: ${IMAGE_NAME:-ohashi-sandbox}
     container_name: ${CONTAINER_NAME:-ohashi-sandbox-container}
     volumes:
-      # Workspace directory (shared between host and container, same name on both sides)
-      - ./workspace:/workspace
+      # Workspace directory (shared between host and container, same name on both
+      # sides). Kept on HDD_PATH so a .venv created in a nested project lands on
+      # the HDD without needing a mount of its own.
+      - ${HDD_PATH}/workspace:/workspace
 
       # Persistent storage, mounted at /hdd so it is visible at the container root
       - ${HDD_PATH}:/hdd
@@ -39,10 +41,6 @@ services:
 
       # Pre-trained models directory
       - ${HDD_PATH}/models:/root/models
-
-      # Project-local uv cache/venv, relocated off the host root disk
-      - ${HDD_PATH}/uv-cache:/workspace/.uv-cache
-      - ${HDD_PATH}/venv:/workspace/.venv
 
       # uv-managed Python runtimes (never persisted before - was lost on every
       # container recreate since .venv/bin/python symlinks into this dir)
@@ -71,7 +69,7 @@ services:
       - "${FILEBROWSER_BIND:-127.0.0.1}:${FILEBROWSER_PORT:-8080}:80"
     volumes:
       - ${HDD_PATH}:/srv/hdd
-      - ./workspace:/srv/workspace
+      - ${HDD_PATH}/workspace:/srv/workspace
     environment:
       - FB_BASEURL=/
     restart: unless-stopped

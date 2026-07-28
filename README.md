@@ -50,11 +50,10 @@ docker compose exec sandbox nvim
 ├── docker-compose.yml      # sandbox, filebrowser, tailscale のサービス定義
 ├── .env.example            # パスやポートの設定テンプレート
 ├── README.md               # プロジェクトドキュメント
-├── workspace/              # [ホスト <-> コンテナ /workspace] 同期ディレクトリ
 └── (HDD_PATH)/             # 外部ストレージ上の永続化ディレクトリ (コンテナ内 /hdd)
+    ├── workspace/          # [ホスト <-> コンテナ /workspace] 同期ディレクトリ
     ├── cache/              # uv, huggingface, npm, dvc, gh のキャッシュ
-    ├── models/             # 大型モデル保存領域
-    └── venv/               # 永続化された Python 仮想環境
+    └── models/             # 大型モデル保存領域
 ```
 
 ## アーキテクチャ
